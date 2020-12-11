@@ -1,0 +1,9 @@
+[package]
+authors = ["Jacek Chmielewski <jchmielewski@teonite.com>"]
+edition = "2018"
+name = "sdr"
+version = "0.1.0"
+
+[dependencies]
+rtlsdr_mt = "2.1.0"
+colored = "2.0.0"
