@@ -1,33 +1,23 @@
+use std::process::exit;
 use colored::*;
 
-fn scan() {
-    let (mut ctl, mut reader) = rtlsdr_mt::open(0).unwrap();
+mod sdr;
+mod utils;
+mod error;
 
-    ctl.enable_agc().unwrap();
-    ctl.set_ppm(-2).unwrap();
-    ctl.set_center_freq(82_200_000).unwrap();
-
-    std::thread::spawn(move || {
-        loop {
-            let next = ctl.center_freq() + 1000;
-            ctl.set_center_freq(next).unwrap();
-
-            std::thread::sleep(std::time::Duration::from_secs(1));
-        }
-    });
-
-    reader.read_async(4, 32768, |bytes| {
-        println!("i[0] = {}", bytes[0]);
-        println!("q[0] = {}", bytes[1]);
-    }).unwrap();
-}
-
-fn main() {
+fn main() -> anyhow::Result<()> {
+    let matches = utils::get_matches();
     let devices: Vec<_> = rtlsdr_mt::devices().collect();
-
-    println!("{}", format!("Found {} device(s):", devices.len()).bright_green().bold());
-    for device in devices {
-        println!("  {:?}", device);
+    let frequency: u32 = matches.value_of("frequency").unwrap_or("98000000").parse()?;
+    if devices.len() == 0 {
+        eprintln!("{}", "No sdr devices found. Bye.".bright_red());
+        exit(1);
     }
-    scan();
+    println!("{}", format!("Found {} device(s):", devices.len()).bright_green().bold());
+    for (i, device) in devices.iter().enumerate() {
+        println!("{}  {:?}", i, device);
+    }
+    println!("Demodulating frequency {} using device {}", frequency.to_string().bright_green(), devices[0].to_str()?.bright_green());
+    sdr::fm_play(frequency)?;   
+    Ok(())
 }

@@ -1,9 +1,11 @@
 [package]
 authors = ["Jacek Chmielewski <jchmielewski@teonite.com>"]
 edition = "2018"
-name = "sdr"
+name = "rustfm"
 version = "0.1.0"
 
 [dependencies]
 rtlsdr_mt = "2.1.0"
 colored = "2.0.0"
+anyhow = "1.0.35"
+clap = "2.33.3"
