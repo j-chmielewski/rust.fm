@@ -6,6 +6,31 @@ pub fn u8_to_f32(input: &[u8]) -> Vec<f32> {
     input.iter().map(|e| (*e as f32) / (std::u8::MAX as f32)).collect()
 }
 
+pub struct DownSampler {
+    factor: u32,
+    rem: u32,
+}
+
+impl DownSampler {
+    pub fn new(factor: u32) -> Self {
+        Self {factor, rem: 0}
+    }
+
+    pub fn downsample(&mut self, input: &Vec<f32>) -> Vec<f32> {
+        let offset = (self.factor as u32 - self.rem as u32) % self.factor as u32;
+        let output: Vec<f32> = input.iter().enumerate().into_iter().filter_map(|(i, v)| {
+            if i as u32 % self.factor == offset {
+                Some(*v) // FIXME: don't copy
+            } else {
+                None
+            }
+        }).collect();
+        self.rem = (self.rem + input.len() as u32) % self.factor;
+
+        output
+    }
+}
+
 pub struct FMDemodulator {
     gain: f32,
     quad_gain: f32,
@@ -57,9 +82,11 @@ pub fn fm_play(freq: u32) -> Result<(), RustFmError> {
     ctl.set_ppm(-2)?;
     ctl.set_center_freq(freq + 5000)?;
 
-    let mut demodulator = FMDemodulator::new(32_000_000., 1., 75_000.);
+    let mut downsampler = DownSampler::new(10);
+    let mut demodulator = FMDemodulator::new(44_100., 1., 75_000.);
     reader.read_async(4, 32768, |bytes| {
         let demodulated = demodulator.demod(&u8_to_f32(bytes));
+        let downsampled = downsampler.downsample(&demodulated);
         println!("{:?}", demodulated);
     })?;
     Ok(())

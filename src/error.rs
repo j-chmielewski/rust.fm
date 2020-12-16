@@ -18,7 +18,7 @@ impl fmt::Display for RustFmError {
 impl std::error::Error for RustFmError {}
 
 impl From<rtlsdr_mt::Error> for RustFmError {
-    fn from(err: rtlsdr_mt::Error) -> Self {
+    fn from(_: rtlsdr_mt::Error) -> Self {
         Self::SdrError
     }
 }
