@@ -1,8 +1,18 @@
 use std::sync::{Arc, Mutex};
+use std::time::SystemTime;
 use std::f32::consts::PI;
-use cpal::Sample;
+use chrono::offset::Utc;
+use chrono::DateTime;
+use cpal::{Sample, SampleRate};
 use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
 use crate::error::RustFmError;
+
+/// Profiling
+pub fn _time(marker: &str) {
+    let start = SystemTime::now();
+    let datetime: DateTime<Utc> = start.into();
+    println!("{}: {}", datetime.format("%S%.3f"), marker);
+}
 
 pub fn u8_to_f32(input: &[u8]) -> Vec<f32> {
     input.iter().map(|e| *e as f32 * 2. / (std::u8::MAX as f32) - 1.).collect()
@@ -92,33 +102,32 @@ impl AudioPlayer {
             .expect("error while querying configs");
         let supported_config = supported_configs_range.next()
             .expect("no supported config?!")
-            .with_max_sample_rate();
+            .with_sample_rate(SampleRate(44100));
+        println!("{:#?}", supported_config);
 
         let err_fn = |err| eprintln!("an error occurred on the output audio stream: {}", err);
-        let sample_format = supported_config.sample_format();
         let config = supported_config.into();
 
         let buffer = Arc::clone(&self.buffer);
             
-            let write_silence = move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
-                let mut buffer = buffer.lock().unwrap();
-                for sample in data.iter_mut() {
-                    if let Some(s) = buffer.get_mut(0) {
-                        *sample = Sample::from(s);
-                        buffer.remove(0);
-                    } else {
-                        println!("Underrun");
-                        break;
-                    }
+        let write_silence = move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
+            let mut buffer = buffer.lock().unwrap();
+            for sample in data.iter_mut() {
+                if let Some(s) = buffer.get_mut(0) {
+                    *sample = Sample::from(s);
+                    buffer.remove(0);
+                } else {
+                    println!("Underrun");
+                    break;
                 }
-            };
-            
-            let stream = device.build_output_stream(&config, write_silence, err_fn).unwrap();
-            stream
+            }
+        };
+        
+        let stream = device.build_output_stream(&config, write_silence, err_fn).unwrap();
+        stream
     }
 
     fn play(&self, input: &mut Vec<f32>) {
-        println!("Play, {}", self.buffer.lock().unwrap().len());
         self.buffer.lock().unwrap().append(input);
     }
 }
@@ -129,17 +138,16 @@ pub fn fm_play(freq: u32) -> Result<(), RustFmError> {
 
     ctl.enable_agc()?;
     ctl.set_center_freq(freq)?;
-    ctl.set_sample_rate(1102500)?;
+    ctl.set_sample_rate(1_102_500)?;
 
     let mut downsampler = DownSampler::new(25);
-    // let mut demodulator = FMDemodulator::new(44_100., 1., 75_000.);
-    let mut demodulator = FMDemodulator::new(1102500., 1., 75_000.);
+    let mut demodulator = FMDemodulator::new(1_102_500., 1., 75_000.);
     let mut player = AudioPlayer::new();
     let stream = player.start();
     stream.play().unwrap();
-    reader.read_async(4, 32768, |bytes| {
+    reader.read_async(4, 1_102_500, |bytes| {
         let bytes_float = u8_to_f32(bytes);
-        let mut demodulated = demodulator.demod(&bytes_float);
+        let demodulated = demodulator.demod(&bytes_float);
         let mut downsampled = downsampler.downsample(&demodulated);
         player.play(&mut downsampled);
     })?;
