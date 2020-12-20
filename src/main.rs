@@ -1,10 +1,11 @@
 use std::process::exit;
 use colored::*;
 
+mod converters;
+mod resamplers;
 mod sdr;
 mod utils;
 mod error;
-mod converters;
 
 fn main() -> anyhow::Result<()> {
     let matches = utils::get_matches();
