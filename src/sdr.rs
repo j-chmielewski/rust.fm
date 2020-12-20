@@ -16,7 +16,7 @@ pub fn _time(marker: &str) {
 
 pub fn u8_to_f32(input: &[u8]) -> Vec<f32> {
     input.iter().map(|e| *e as f32 * 2. / (std::u8::MAX as f32) - 1.).collect()
-}
+}    
 
 pub struct DownSampler {
     factor: u32,
