@@ -18,7 +18,7 @@ impl<'a> Iterator for TypeConverter<'a> {
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(value) = self.iterator.next() {
-            Some(*value as f32 * 2. / std::u8::MAX as f32 - 1.)
+            Some(*value as f32 * 2. / u8::MAX as f32 - 1.)
         } else {
             None
         } 
@@ -27,7 +27,7 @@ impl<'a> Iterator for TypeConverter<'a> {
 
 #[test]
 fn test_type_converter() {
-    let mut converter = TypeConverter::from([0u8, std::u8::MAX].iter());
+    let mut converter = TypeConverter::from([0u8, u8::MAX].iter());
     assert_eq!(
         (converter.next(), converter.next(), converter.next()),
         (Some(-1.), Some(1.), None)

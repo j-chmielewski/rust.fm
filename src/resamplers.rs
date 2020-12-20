@@ -5,8 +5,8 @@ pub struct Downsampler<'a> {
 }
 
 impl<'a> Downsampler<'a> {
-    /// Creates Downsampler from iterator over f32 values
-    pub fn from<I>(iterator: I, factor: u16) -> Downsampler<'a> where I: Iterator<Item=&'a f32> + 'a {
+    /// Creates Downsampler from Iterator over f32 values
+    pub fn from<I>(iterator: I, factor: u16) -> Self where I: Iterator<Item=&'a f32> + 'a {
         Downsampler {
             factor: factor,
             iterator: Box::new(iterator)

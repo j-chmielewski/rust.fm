@@ -15,7 +15,7 @@ pub fn _time(marker: &str) {
 }
 
 pub fn u8_to_f32(input: &[u8]) -> Vec<f32> {
-    input.iter().map(|e| *e as f32 * 2. / (std::u8::MAX as f32) - 1.).collect()
+    input.iter().map(|e| *e as f32 * 2. / (u8::MAX as f32) - 1.).collect()
 }    
 
 pub struct DownSampler {
@@ -156,6 +156,6 @@ pub fn fm_play(freq: u32) -> Result<(), RustFmError> {
 
 #[test]
 fn test_u8_to_f32() {
-    let data: &[u8] = &[0, std::u8::MAX];
+    let data: &[u8] = &[0, u8::MAX];
     assert_eq!(u8_to_f32(data), vec![-1., 1.])
 }

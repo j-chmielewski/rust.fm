@@ -3,6 +3,7 @@ use colored::*;
 
 mod converters;
 mod resamplers;
+mod demodulators;
 mod sdr;
 mod utils;
 mod error;
