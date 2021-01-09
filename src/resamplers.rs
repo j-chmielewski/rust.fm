@@ -1,12 +1,12 @@
 /// Performs downsampling of real-valued input signal by specified factor.
-pub struct Downsampler<'a> {
+pub struct Downsampler {
         factor: u16,
-        iterator: Box<dyn Iterator<Item=&'a f32> + 'a>
+        iterator: Box<dyn Iterator<Item=f32>>
 }
 
-impl<'a> Downsampler<'a> {
+impl<'a> Downsampler {
     /// Creates Downsampler from Iterator over f32 values
-    pub fn from<I>(iterator: I, factor: u16) -> Self where I: Iterator<Item=&'a f32> + 'a {
+    pub fn from<I>(iterator: I, factor: u16) -> Self where I: Iterator<Item=f32> + 'static {
         Downsampler {
             factor: factor,
             iterator: Box::new(iterator)
@@ -14,7 +14,7 @@ impl<'a> Downsampler<'a> {
     }
 }
 
-impl<'a> Iterator for Downsampler<'a> {
+impl<'a> Iterator for Downsampler {
     type Item = f32;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -33,13 +33,13 @@ impl<'a> Iterator for Downsampler<'a> {
 
 #[test]
 fn test_downsampler() {
-    let mut downsampler = Downsampler::from([0., 1., 2., 3.].iter(), 2);
+    let mut downsampler = Downsampler::from([0., 1., 2., 3.].iter().cloned(), 2);
     assert_eq!(
         (downsampler.next(), downsampler.next(), downsampler.next()),
         (Some(0.5), Some(2.5), None)
     );
 
-    let mut downsampler = Downsampler::from([0., 1., 2., 3., 4., 5.].iter(), 3);
+    let mut downsampler = Downsampler::from([0., 1., 2., 3., 4., 5.].iter().cloned(), 3);
     assert_eq!(
         (downsampler.next(), downsampler.next(), downsampler.next()),
         (Some(1.), Some(4.), None)

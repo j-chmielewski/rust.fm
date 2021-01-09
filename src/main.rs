@@ -4,6 +4,7 @@ use colored::*;
 mod converters;
 mod resamplers;
 mod demodulators;
+mod audio;
 mod sdr;
 mod utils;
 mod error;
