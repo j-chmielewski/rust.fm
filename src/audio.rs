@@ -1,6 +1,8 @@
 use std::sync::{Arc, Mutex};
+use std::io;
 use cpal::{Sample, SampleRate};
 use cpal::traits::{DeviceTrait, HostTrait};
+use io::Write;
 
 pub struct AudioPlayer {
     buffer: Arc<Mutex<Vec<f32>>>
@@ -33,7 +35,8 @@ impl AudioPlayer {
                     *sample = Sample::from(s);
                     buffer.remove(0);
                 } else {
-                    println!("Audio buffer underrun");
+                    print!("AU ");
+                    io::stdout().flush().unwrap();
                     break;
                 }
             }
